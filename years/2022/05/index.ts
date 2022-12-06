@@ -8,85 +8,112 @@ import { performance } from "perf_hooks";
 const YEAR = 2022;
 const DAY = 5;
 
-// solution path: C:\Users\trgau\dev\t-hugs\advent-of-code\years\2022\05\index.ts
-// data path    : C:\Users\trgau\dev\t-hugs\advent-of-code\years\2022\05\data.txt
+// solution path: /home/benjamin/Documents/personal/advent-of-code/years/2022/05/index.ts
+// data path    : /home/benjamin/Documents/personal/advent-of-code/years/2022/05/data.txt
 // problem url  : https://adventofcode.com/2022/day/5
 
-function parseInput(input: string) {
-	const stacks: string[][] = [];
-	const [stackInput, moves] = input.split("\n\n").map(s => s.split("\n"));
-
-	for (let i = 0; i < stackInput.length; ++i) {
-		for (let j = 0; j < stackInput[i].length; j += 4) {
-			const letter = stackInput[i][j + 1];
-			if (/[A-Z]/.test(letter)) {
-				if (!stacks[j / 4]) {
-					stacks[j / 4] = [];
-				}
-				stacks[j / 4].unshift(letter);
-			}
-		}
-	}
-	return { stacks, moves };
-}
-
 async function p2022day5_part1(input: string, ...params: any[]) {
-	const { stacks, moves } = parseInput(input);
+	const groups = input.split("\n\n");
+	const lines = groups[0].split('\n');
+	const columns:string  = lines.pop() ?? '';
+	const indexes = [];
+	let count = 1;
+	let ind = columns.indexOf(count.toString())
+	while (ind != -1) {
+		indexes.push(ind);
+		count++;
+		ind = columns.indexOf(count.toString());
+	}
 
-	for (const move of moves) {
-		const [_, qty, __, from, ___, to] = move.split(" ").map(Number);
-		for (let i = 0; i < Number(qty); ++i) {
-			const popped = stacks[from - 1].pop();
-			if (popped) {
-				stacks[to - 1].push(popped);
+	const stacks = Array(indexes.length).fill([]).map(_ => new Array());
+	
+	for (let line of lines) {
+		for (let i = 0; i < indexes.length; i++) {
+			const index = indexes[i];
+			const letter = line.charAt(index).trim();
+			if (letter.length != 0) {
+				stacks[i].push(letter);
 			}
+		}	
+	}
+	
+	const instructions = groups[1].split('\n');
+	for (let line of instructions) {
+		const foo = line.split(' ')	;
+		const count = Number(foo[1]);
+		const start = Number(foo[3]);
+		const end = Number(foo[5]);
+
+		for (let i = 0; i < count; i++) {
+			const item = stacks[start-1].shift();
+			stacks[end-1].unshift(item);
 		}
 	}
-	return stacks.reduce((p, c) => p + c.pop(), "");
+
+	const yeet = stacks.map(x => x[0]).join('');
+	return yeet;
+
 }
 
 async function p2022day5_part2(input: string, ...params: any[]) {
-	const { stacks, moves } = parseInput(input);
-
-	for (const move of moves) {
-		const [_, qty, __, from, ___, to] = move.split(" ").map(Number);
-
-		const removed = stacks[from - 1].splice(stacks[from - 1].length - qty, qty);
-		stacks[to - 1].push(...removed);
+	const groups = input.split("\n\n");
+	const lines = groups[0].split('\n');
+	const columns:string  = lines.pop() ?? '';
+	const indexes = [];
+	let count = 1;
+	let ind = columns.indexOf(count.toString())
+	while (ind != -1) {
+		indexes.push(ind);
+		count++;
+		ind = columns.indexOf(count.toString());
 	}
-	return stacks.reduce((p, c) => p + c.pop(), "");
+
+	const stacks = Array(indexes.length).fill([]).map(_ => new Array());
+	
+	for (let line of lines) {
+		for (let i = 0; i < indexes.length; i++) {
+			const index = indexes[i];
+			const letter = line.charAt(index).trim();
+			if (letter.length != 0) {
+				stacks[i].push(letter);
+			}
+		}	
+	}
+	
+	const instructions = groups[1].split('\n');
+	for (let line of instructions) {
+		const foo = line.split(' ')	;
+		const count = Number(foo[1]);
+		const start = Number(foo[3]);
+		const end = Number(foo[5]);
+
+		const yote = [];
+		for (let i = 0; i < count; i++) {
+			yote.unshift(stacks[start-1].shift());
+		}
+		for (let x of yote) {
+			stacks[end-1].unshift(x);
+		}		
+	}
+
+	const yeet = stacks.map(x => x[0]).join('');
+	return yeet;
 }
 
 async function run() {
 	const part1tests: TestCase[] = [
 		{
-			input: `    [D]    
-[N] [C]    
-[Z] [M] [P]
-	1   2   3 
-
-move 1 from 2 to 1
-move 3 from 1 to 3
-move 2 from 2 to 1
-move 1 from 1 to 2`,
+			input: `    [D]    \n[N] [C]    \n[Z] [M] [P]\n 1   2   3 \n\nmove 1 from 2 to 1\nmove 3 from 1 to 3\nmove 2 from 2 to 1\nmove 1 from 1 to 2`,
 			extraArgs: [],
-			expected: `CMZ`,
-		},
+			expected: `CMZ`
+		}
 	];
 	const part2tests: TestCase[] = [
 		{
-			input: `    [D]    
-[N] [C]    
-[Z] [M] [P]
-	1   2   3 
-
-move 1 from 2 to 1
-move 3 from 1 to 3
-move 2 from 2 to 1
-move 1 from 1 to 2`,
+			input: `    [D]    \n[N] [C]    \n[Z] [M] [P]\n 1   2   3 \n\nmove 1 from 2 to 1\nmove 3 from 1 to 3\nmove 2 from 2 to 1\nmove 1 from 1 to 2`,
 			extraArgs: [],
-			expected: `MCD`,
-		},
+			expected: `MCD`
+		}
 	];
 
 	// Run tests
@@ -110,7 +137,7 @@ move 1 from 1 to 2`,
 	const part1Solution = String(await p2022day5_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now();
+	const part2Before = performance.now()
 	const part2Solution = String(await p2022day5_part2(input));
 	const part2After = performance.now();
 

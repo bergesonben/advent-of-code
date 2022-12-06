@@ -8,111 +8,108 @@ import { performance } from "perf_hooks";
 const YEAR = 2022;
 const DAY = 2;
 
-// solution path: C:\Users\trgau\dev\t-hugs\advent-of-code\years\2022\02\index.ts
-// data path    : C:\Users\trgau\dev\t-hugs\advent-of-code\years\2022\02\data.txt
+// solution path: /home/benjamin/Documents/personal/advent-of-code/years/2022/02/index.ts
+// data path    : /home/benjamin/Documents/personal/advent-of-code/years/2022/02/data.txt
 // problem url  : https://adventofcode.com/2022/day/2
 
-async function p2022day2_part1(input: string, ...params: any[]) {
-	const rockPoints = 1;
-	const paperPoints = 2;
-	const scissorsPoints = 3;
-	const winPoints = 6;
-	const tiePoints = 3;
-	const losePoints = 0;
+const points = {
+	'X': 0,
+	'Y': 3,
+	'Z': 6,	
+	rock: 1,
+	paper: 2, 
+	scissors: 3
+}
 
+enum Result {
+	win = 6,
+	lose = 0,
+	draw = 3
+}
+
+async function p2022day2_part1(input: string, ...params: any[]) {
 	const lines = input.split("\n");
 	let score = 0;
 	for (const line of lines) {
-		const [theirs, mine] = line.split(" ");
-		if (theirs === "A" && mine === "X") {
-			score += tiePoints + rockPoints;
-		}
-		if (theirs === "A" && mine === "Y") {
-			score += winPoints + paperPoints;
-		}
-		if (theirs === "A" && mine === "Z") {
-			score += losePoints + scissorsPoints;
-		}
-		if (theirs === "B" && mine === "X") {
-			score += losePoints + rockPoints;
-		}
-		if (theirs === "B" && mine === "Y") {
-			score += tiePoints + paperPoints;
-		}
-		if (theirs === "B" && mine === "Z") {
-			score += winPoints + scissorsPoints;
-		}
-		if (theirs === "C" && mine === "X") {
-			score += winPoints + rockPoints;
-		}
-		if (theirs === "C" && mine === "Y") {
-			score += losePoints + paperPoints;
-		}
-		if (theirs === "C" && mine === "Z") {
-			score += tiePoints + scissorsPoints;
-		}
+		const [elf, me] = line.split(/\s+/);
+		const round = await result(elf, me);
+		score += points[me as ('X'|'Y'|'Z')] + Number(round);
 	}
 	return score;
 }
 
-async function p2022day2_part2(input: string, ...params: any[]) {
-	const rockPoints = 1;
-	const paperPoints = 2;
-	const scissorsPoints = 3;
-	const winPoints = 6;
-	const tiePoints = 3;
-	const losePoints = 0;
+async function result(elf: string, me: string): Promise<Result> {
+	if (elf == 'A') { // rock
+		if (me == 'X') return Result.draw
+		if (me == 'Y') return Result.win
+		if (me == 'Z') return Result.lose
+		trace('nono');
+		return Result.lose;		
+	} else if (elf == 'B') { //paper
+		if (me == 'X') return Result.lose // rock
+		if (me == 'Y') return Result.draw //paper
+		if (me == 'Z') return Result.win // scissor
+		trace('nono');
+		return Result.lose;		
+	} else if (elf == 'C') { //scissor
+		if (me == 'X') return Result.win // rock
+		if (me == 'Y') return Result.lose //paper
+		if (me == 'Z') return Result.draw // scissor
+		trace('nono');
+		return Result.lose;	
+	} else {
+		trace('ohno');
+	}
+	return Result.lose;
+}
 
-	let score = 0;
+async function p2022day2_part2(input: string, ...params: any[]) {
 	const lines = input.split("\n");
+	let score = 0;
 	for (const line of lines) {
-		const [theirs, outcome] = line.split(" ");
-		if (theirs === "A" && outcome === "X") {
-			score += losePoints + scissorsPoints;
+		const [elf, res] = line.split(/\s+/);
+		if (elf == 'A') { // rock
+			if (res == 'X') // lose
+				score += points.scissors + points['X'];
+			if (res == 'Y') // draw
+				score += points.rock + points['Y'];
+			if (res == 'Z') // win
+				score += points.paper + points['Z'];
+		} else if (elf == 'B') { // paper
+			if (res == 'X') // lose
+				score += points.rock + points['X'];
+			if (res == 'Y') // draw
+				score += points.paper + points['Y'];
+			if (res == 'Z') // win
+				score += points.scissors + points['Z'];
+		} else { //scissor
+			if (res == 'X') // lose
+				score += points.paper + points['X'];
+			if (res == 'Y') // draw
+				score += points.scissors + points['Y'];
+			if (res == 'Z') // win
+				score += points.rock + points['Z'];
 		}
-		if (theirs === "A" && outcome === "Y") {
-			score += tiePoints + rockPoints;
-		}
-		if (theirs === "A" && outcome === "Z") {
-			score += winPoints + paperPoints;
-		}
-		if (theirs === "B" && outcome === "X") {
-			score += losePoints + rockPoints;
-		}
-		if (theirs === "B" && outcome === "Y") {
-			score += tiePoints + paperPoints;
-		}
-		if (theirs === "B" && outcome === "Z") {
-			score += winPoints + scissorsPoints;
-		}
-		if (theirs === "C" && outcome === "X") {
-			score += losePoints + paperPoints;
-		}
-		if (theirs === "C" && outcome === "Y") {
-			score += tiePoints + scissorsPoints;
-		}
-		if (theirs === "C" && outcome === "Z") {
-			score += winPoints + rockPoints;
-		}
+		
 	}
 	return score;
 }
 
 async function run() {
-	const part1tests: TestCase[] = [{
-		input: `A Y
-B X
-C Z`,
-		extraArgs: [],
-		expected: `15`
-	}];
-	const part2tests: TestCase[] = [{
-		input: `A Y
-B X
-C Z`,
-		extraArgs: [],
-		expected: `12`
-	}];
+	const part1tests: TestCase[] = [
+		{
+			input: `A Y\nB X\nC Z`,
+			extraArgs: [],
+			expected: `15`
+		}
+	];
+	const part2tests: TestCase[] = [
+		{
+			input: `A Y\nB X\nC Z`,
+			extraArgs: [],
+			expected: `12`
+		}
+	];
 
 	// Run tests
 	test.beginTests();

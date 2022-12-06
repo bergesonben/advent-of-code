@@ -8,76 +8,87 @@ import { performance } from "perf_hooks";
 const YEAR = 2022;
 const DAY = 3;
 
-// solution path: C:\Users\trgau\dev\t-hugs\advent-of-code\years\2022\03\index.ts
-// data path    : C:\Users\trgau\dev\t-hugs\advent-of-code\years\2022\03\data.txt
+// solution path: /home/benjamin/Documents/personal/advent-of-code/years/2022/03/index.ts
+// data path    : /home/benjamin/Documents/personal/advent-of-code/years/2022/03/data.txt
 // problem url  : https://adventofcode.com/2022/day/3
 
-const alpha = "abcdefghijklmnopqrstuvwxyz";
-const priorities = alpha.split("");
-priorities.push(...alpha.toUpperCase().split(""));
-function getPriority(letter: string) {
-	return priorities.indexOf(letter) + 1;
-}
-
 async function p2022day3_part1(input: string, ...params: any[]) {
+	const str = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 	const lines = input.split("\n");
-	const commons = [];
+	let sum = 0;
 	for (const line of lines) {
-		const first = line.slice(0, line.length / 2);
-		const second = line.slice(line.length / 2);
-		const uniqFirst = util.countUniqueElements(first);
-		for (const l of second) {
-			if (uniqFirst[l]) {
-				commons.push(l);
-				break;
-			}
+		const first: Set<string> = new Set();
+		const second: Set<string> = new Set();
+		for (let i = 0; i < line.length/2; i++) {
+			first.add(line.charAt(i));
+			second.add(line.charAt(line.length-1-i));
 		}
+		const foo: Set<string> = new Set();
+		for (let x of first) {
+			if (second.has(x)) foo.add(x);
+		}
+		for (let x of foo) {
+			sum += str.indexOf(x) + 1
+		}		
 	}
-	return commons.reduce((p, c) => p + getPriority(c), 0);
+
+	return sum;
 }
 
 async function p2022day3_part2(input: string, ...params: any[]) {
+	const str = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 	const lines = input.split("\n");
-	const alpha = "abcdefghijklmnopqrstuvwxyz";
-	const badges = [];
-	for (let i = 0; i < lines.length; i += 3) {
-		const first = lines[i];
-		const second = lines[i + 1];
-		const third = lines[i + 2];
+	let count = 0;
+	const first: Set<string> = new Set();
+	const second: Set<string> = new Set();
+	const third: Set<string> = new Set();
+	let sum = 0;
 
-		for (const letter of alpha + alpha.toUpperCase()) {
-			if (first.includes(letter) && second.includes(letter) && third.includes(letter)) {
-				badges.push(letter);
-				break;
+	for (const line of lines) {
+		if (count == 0) {
+			for (let x of line) {
+				first.add(x);
 			}
-		}
+			count++;
+		} else if (count == 1) {
+			for (let x of line) {
+				second.add(x);
+			}
+			count++;
+		} else {
+			for (let x of line) {
+				third.add(x);
+			}		
+
+			for (let x of first) {
+				if (second.has(x) && third.has(x)) {
+					sum += str.indexOf(x) + 1;
+					break;
+				}
+			}
+			first.clear();
+			second.clear();
+			third.clear();
+			count = 0;	
+		} 
 	}
-	return badges.reduce((p, c) => p + getPriority(c), 0);
+	
+	return sum;
 }
 
 async function run() {
-	const part1tests: TestCase[] = [
-		{
-			input: `vJrwpWtwJgWrhcsFMMfFFhFp
-jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
-PmmdzqPrVvPwwTWBwg
-wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
-ttgJtRGJQctTZtZT
-CrZsJsPPZsGzwwsLwLmpwMDw`,
-			extraArgs: [],
-			expected: `157`,
-		},
-	];
-	const part2tests: TestCase[] = [{
-		input: `vJrwpWtwJgWrhcsFMMfFFhFp
-jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
-PmmdzqPrVvPwwTWBwg
-wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
-ttgJtRGJQctTZtZT
-CrZsJsPPZsGzwwsLwLmpwMDw`,
+	const part1tests: TestCase[] = [{
+		input: `vJrwpWtwJgWrhcsFMMfFFhFp\njqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL\nPmmdzqPrVvPwwTWBwg\nwMqvLMZHhHMvwLHjbvcjnnSBnvTQFn\nttgJtRGJQctTZtZT\nCrZsJsPPZsGzwwsLwLmpwMDw`,
 		extraArgs: [],
-		expected: `70`
+		expected: `157`
 	}];
+	const part2tests: TestCase[] = [
+		{
+			input: `vJrwpWtwJgWrhcsFMMfFFhFp\njqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL\nPmmdzqPrVvPwwTWBwg\nwMqvLMZHhHMvwLHjbvcjnnSBnvTQFn\nttgJtRGJQctTZtZT\nCrZsJsPPZsGzwwsLwLmpwMDw`,
+			extraArgs: [],
+			expected: `70`
+		}
+	];
 
 	// Run tests
 	test.beginTests();
@@ -100,7 +111,7 @@ CrZsJsPPZsGzwwsLwLmpwMDw`,
 	const part1Solution = String(await p2022day3_part1(input));
 	const part1After = performance.now();
 
-	const part2Before = performance.now();
+	const part2Before = performance.now()
 	const part2Solution = String(await p2022day3_part2(input));
 	const part2After = performance.now();
 

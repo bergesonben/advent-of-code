@@ -8,19 +8,25 @@ import { performance } from "perf_hooks";
 const YEAR = 2022;
 const DAY = 4;
 
-// solution path: C:\Users\trgau\dev\t-hugs\advent-of-code\years\2022\04\index.ts
-// data path    : C:\Users\trgau\dev\t-hugs\advent-of-code\years\2022\04\data.txt
+// solution path: /home/benjamin/Documents/personal/advent-of-code/years/2022/04/index.ts
+// data path    : /home/benjamin/Documents/personal/advent-of-code/years/2022/04/data.txt
 // problem url  : https://adventofcode.com/2022/day/4
 
 async function p2022day4_part1(input: string, ...params: any[]) {
 	const lines = input.split("\n");
 	let count = 0;
 	for (const line of lines) {
-		const [first, second] = line.split(",");
-		const [firstStart, firstEnd] = first.split("-").map(Number);
-		const [secondStart, secondEnd] = second.split("-").map(Number);
+		const foo = line.split(',');
+		const range1 = foo[0];
+		const range2 = foo[1];
+		let bar = range1.split('-')
+		const start1 = Number(bar[0]);
+		const end1 = Number(bar[1]);
+		bar = range2.split('-')
+		const start2 = Number(bar[0]);
+		const end2 = Number(bar[1]);
 
-		if (firstStart <= secondStart && firstEnd >= secondEnd || secondStart <= firstStart && secondEnd >= firstEnd) {
+		if ((start1 <= start2 && start2 <= end1 && start1 <= end2  && end2 <= end1) || (start2 <= start1 && start2 <= end1 && start1 <= end2 && end1 <= end2)) {
 			count++;
 		}
 	}
@@ -31,38 +37,43 @@ async function p2022day4_part2(input: string, ...params: any[]) {
 	const lines = input.split("\n");
 	let count = 0;
 	for (const line of lines) {
-		const [first, second] = line.split(",");
-		const [firstStart, firstEnd] = first.split("-").map(Number);
-		const [secondStart, secondEnd] = second.split("-").map(Number);
+		const foo = line.split(',');
+		const range1 = foo[0];
+		const range2 = foo[1];
+		let bar = range1.split('-')
+		const start1 = Number(bar[0]);
+		const end1 = Number(bar[1]);
+		bar = range2.split('-')
+		const start2 = Number(bar[0]);
+		const end2 = Number(bar[1]);
 
-		if (firstEnd < secondStart || secondEnd < firstStart) {
+		if ((start1 <= start2 && start2 <= end1) || (start2 <= start1 && start1 <= end2)) {
 			count++;
 		}
 	}
-	return lines.length - count;
+	return count;
 }
 
 async function run() {
-	const part1tests: TestCase[] = [{
-		input: `2-4,6-8
-2-3,4-5
-5-7,7-9
-2-8,3-7
-6-6,4-6
-2-6,4-8`,
-		extraArgs: [],
-		expected: `2`
-	}];
-	const part2tests: TestCase[] = [{
-		input: `2-4,6-8
-2-3,4-5
-5-7,7-9
-2-8,3-7
-6-6,4-6
-2-6,4-8`,
-		extraArgs: [],
-		expected: `4`
-	}];
+	const part1tests: TestCase[] = [
+		{
+			input: `2-4,6-8\n2-3,4-5\n5-7,7-9\n2-8,3-7\n6-6,4-6\n2-6,4-8`,
+			extraArgs: [],
+			expected: `2`
+		},
+		{
+			input: `2-4,6-8\n2-3,4-5\n5-7,7-9\n2-8,3-7\n6-6,4-6\n2-6,4-8\n20-20,20-100`,
+			extraArgs: [],
+			expected: `3`
+		}
+	];
+	const part2tests: TestCase[] = [
+		{
+			input: `2-4,6-8\n2-3,4-5\n5-7,7-9\n2-8,3-7\n6-6,4-6\n2-6,4-8`,
+			extraArgs: [],
+			expected: `4`
+		}
+	];
 
 	// Run tests
 	test.beginTests();

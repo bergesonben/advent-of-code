@@ -8,21 +8,81 @@ import { performance } from "perf_hooks";
 const YEAR = 2022;
 const DAY = 6;
 
-// solution path: C:\Users\trgau\dev\t-hugs\advent-of-code\years\2022\06\index.ts
-// data path    : C:\Users\trgau\dev\t-hugs\advent-of-code\years\2022\06\data.txt
+// solution path: /home/benjamin/Documents/personal/advent-of-code/years/2022/06/index.ts
+// data path    : /home/benjamin/Documents/personal/advent-of-code/years/2022/06/data.txt
 // problem url  : https://adventofcode.com/2022/day/6
 
 async function p2022day6_part1(input: string, ...params: any[]) {
-	return "Not implemented";
+	let index = 3;
+	let str = input.substring(0,4);
+	while (index < input.length) {
+		const foo = new Set([...str]);
+		if (foo.size == 4) return index+1;
+		str = str.substring(1);
+		index++;
+		str += input.charAt(index);
+	}
+	return null;
 }
 
 async function p2022day6_part2(input: string, ...params: any[]) {
-	return "Not implemented";
+	let index = 13;
+	let str = input.substring(0,14);
+	while (index < input.length) {
+		const foo = new Set([...str]);
+		if (foo.size == 14) return index+1;
+		str = str.substring(1);
+		index++;
+		str += input.charAt(index);
+	}
+	return null;
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
-	const part2tests: TestCase[] = [];
+	const part1tests: TestCase[] = [
+		{
+			input: `mjqjpqmgbljsphdztnvjfqwrcgsmlb`,
+			extraArgs: [],
+			expected: `7`
+		},
+		{
+			input: `bvwbjplbgvbhsrlpgdmjqwftvncz`,
+			extraArgs: [],
+			expected: `5`
+		},
+		{
+			input: `zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw`,
+			extraArgs: [],
+			expected: `11`
+		}
+	];
+	const part2tests: TestCase[] = [
+		{
+			input: `mjqjpqmgbljsphdztnvjfqwrcgsmlb`,
+			extraArgs: [],
+			expected: `19`
+		},
+		{
+			input: `bvwbjplbgvbhsrlpgdmjqwftvncz`,
+			extraArgs: [],
+			expected: `23`
+		},
+		{
+			input: `nppdvjthqldpwncqszvftbrmjlhg`,
+			extraArgs: [],
+			expected: `23`
+		},
+		{
+			input: `nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg`,
+			extraArgs: [],
+			expected: `29`
+		},
+		{
+			input: `zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw`,
+			extraArgs: [],
+			expected: `26`
+		}
+	];
 
 	// Run tests
 	test.beginTests();
