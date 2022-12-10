@@ -13,16 +13,106 @@ const DAY = 10;
 // problem url  : https://adventofcode.com/2022/day/10
 
 async function p2022day10_part1(input: string, ...params: any[]) {
-	return "Not implemented";
+	let x = 1;
+	let currCycle = 1;
+	let sum = 0;
+	const offset = 20;
+	const lines = input.split("\n");
+	for (const line of lines) {	
+		execute(line);	
+	}
+	return sum;
+
+	function execute(line: string): void {
+		if (line.trim() == 'noop') {
+			incrementCycle();
+		} else {
+			const yeet = line.split(' ');
+			add(Number(yeet[1]));
+		}
+	}
+
+	function add(num: number): void {
+		incrementCycle();
+		incrementCycle();
+		x += num;
+	}
+
+	function incrementCycle(): void {
+		if ((currCycle - offset) % 40 == 0) {
+			sum += x * currCycle;
+		}
+		currCycle++;
+	}
 }
 
 async function p2022day10_part2(input: string, ...params: any[]) {
-	return "Not implemented";
+	let x = 1;
+	let currCycle = 1;	
+	let screen = '';
+	const lines = input.split("\n");
+	for (const line of lines) {	
+		execute(line);	
+	}
+	return screen;
+
+	function execute(line: string): void {
+		if (line.trim() == 'noop') {
+			incrementCycle();
+		} else {
+			const yeet = line.split(' ');
+			add(Number(yeet[1]));
+		}
+	}
+
+	function add(num: number): void {
+		incrementCycle();
+		incrementCycle();
+		x += num;
+	}
+
+	function incrementCycle(): void {
+		if (isSpriteVisible()) {
+			screen += '#'
+		} else {
+			screen += '.'
+		}
+		if (getPixelPos() == 39) {
+			screen += '\n'
+		}
+		currCycle++;
+	}
+
+	function isSpriteVisible(): boolean {
+		const currPixel = getPixelPos();
+		return x-1 <= currPixel && currPixel <= x+1;
+	}
+
+	function getPixelPos(): number {
+		return (currCycle-1) % 40;
+	}
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
-	const part2tests: TestCase[] = [];
+	const part1tests: TestCase[] = [
+		{
+			input: `addx 15\naddx -11\naddx 6\naddx -3\naddx 5\naddx -1\naddx -8\naddx 13\naddx 4\nnoop\naddx -1\naddx 5\naddx -1\naddx 5\naddx -1\naddx 5\naddx -1\naddx 5\naddx -1\naddx -35\naddx 1\naddx 24\naddx -19\naddx 1\naddx 16\naddx -11\nnoop\nnoop\naddx 21\naddx -15\nnoop\nnoop\naddx -3\naddx 9\naddx 1\naddx -3\naddx 8\naddx 1\naddx 5\nnoop\nnoop\nnoop\nnoop\nnoop\naddx -36\nnoop\naddx 1\naddx 7\nnoop\nnoop\nnoop\naddx 2\naddx 6\nnoop\nnoop\nnoop\nnoop\nnoop\naddx 1\nnoop\nnoop\naddx 7\naddx 1\nnoop\naddx -13\naddx 13\naddx 7\nnoop\naddx 1\naddx -33\nnoop\nnoop\nnoop\naddx 2\nnoop\nnoop\nnoop\naddx 8\nnoop\naddx -1\naddx 2\naddx 1\nnoop\naddx 17\naddx -9\naddx 1\naddx 1\naddx -3\naddx 11\nnoop\nnoop\naddx 1\nnoop\naddx 1\nnoop\nnoop\naddx -13\naddx -19\naddx 1\naddx 3\naddx 26\naddx -30\naddx 12\naddx -1\naddx 3\naddx 1\nnoop\nnoop\nnoop\naddx -9\naddx 18\naddx 1\naddx 2\nnoop\nnoop\naddx 9\nnoop\nnoop\nnoop\naddx -1\naddx 2\naddx -37\naddx 1\naddx 3\nnoop\naddx 15\naddx -21\naddx 22\naddx -6\naddx 1\nnoop\naddx 2\naddx 1\nnoop\naddx -10\nnoop\nnoop\naddx 20\naddx 1\naddx 2\naddx 2\naddx -6\naddx -11\nnoop\nnoop\nnoop`,
+			extraArgs: [],
+			expected: `13140`
+		},
+		{
+			input: `noop\naddx 3\naddx -5`,
+			extraArgs: [],
+			expected: `0`
+		}
+	];
+	const part2tests: TestCase[] = [
+		{
+			input: `addx 15\naddx -11\naddx 6\naddx -3\naddx 5\naddx -1\naddx -8\naddx 13\naddx 4\nnoop\naddx -1\naddx 5\naddx -1\naddx 5\naddx -1\naddx 5\naddx -1\naddx 5\naddx -1\naddx -35\naddx 1\naddx 24\naddx -19\naddx 1\naddx 16\naddx -11\nnoop\nnoop\naddx 21\naddx -15\nnoop\nnoop\naddx -3\naddx 9\naddx 1\naddx -3\naddx 8\naddx 1\naddx 5\nnoop\nnoop\nnoop\nnoop\nnoop\naddx -36\nnoop\naddx 1\naddx 7\nnoop\nnoop\nnoop\naddx 2\naddx 6\nnoop\nnoop\nnoop\nnoop\nnoop\naddx 1\nnoop\nnoop\naddx 7\naddx 1\nnoop\naddx -13\naddx 13\naddx 7\nnoop\naddx 1\naddx -33\nnoop\nnoop\nnoop\naddx 2\nnoop\nnoop\nnoop\naddx 8\nnoop\naddx -1\naddx 2\naddx 1\nnoop\naddx 17\naddx -9\naddx 1\naddx 1\naddx -3\naddx 11\nnoop\nnoop\naddx 1\nnoop\naddx 1\nnoop\nnoop\naddx -13\naddx -19\naddx 1\naddx 3\naddx 26\naddx -30\naddx 12\naddx -1\naddx 3\naddx 1\nnoop\nnoop\nnoop\naddx -9\naddx 18\naddx 1\naddx 2\nnoop\nnoop\naddx 9\nnoop\nnoop\nnoop\naddx -1\naddx 2\naddx -37\naddx 1\naddx 3\nnoop\naddx 15\naddx -21\naddx 22\naddx -6\naddx 1\nnoop\naddx 2\naddx 1\nnoop\naddx -10\nnoop\nnoop\naddx 20\naddx 1\naddx 2\naddx 2\naddx -6\naddx -11\nnoop\nnoop\nnoop`,
+			extraArgs: [],
+			expected: `##..##..##..##..##..##..##..##..##..##..\n###...###...###...###...###...###...###.\n####....####....####....####....####....\n#####.....#####.....#####.....#####.....\n######......######......######......####\n#######.......#######.......#######.....`
+		},
+	];
 
 	// Run tests
 	test.beginTests();
