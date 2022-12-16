@@ -1,6 +1,7 @@
 import _ from "lodash";
 import * as util from "../../../util/util";
 import * as test from "../../../util/test";
+import {IntRange, flattenRanges} from "../../../util/range";
 import chalk from "chalk";
 import { log, logSolution, trace } from "../../../util/log";
 import { performance } from "perf_hooks";
@@ -35,12 +36,12 @@ class Sensor {
 		return answer;
 	}
 
-	public getImpossibleRange(line: number): Range | undefined {
+	public getImpossibleRange(line: number): IntRange | undefined {
 		if (Math.abs(line - this.y) > this.distance) return;
 		
 		const vertDiff = Math.abs(this.y - line);
 		const xCount = this.distance - vertDiff;
-		return new Range(this.x - xCount, this.x + xCount);
+		return new IntRange(this.x - xCount, this.x + xCount);
 	}
 }
 
@@ -80,27 +81,6 @@ async function p2022day15_part1(input: string, ...params: any[]) {
 	}
 }
 
-class Range {
-	public length: number;
-	constructor(public start: number, public end: number){
-		this.length = end - start;
-	}
-
-	public overlaps(otherRange: Range): boolean {
-		return this.start <= otherRange.end && otherRange.start <= this.end;
-	}
-
-	public getOverlapLength(otherRange: Range): number {
-		if (!this.overlaps(otherRange)) return 0;
-
-		return 0;
-	}
-
-	public combine(otherRange: Range): Range {
-		return new Range(Math.min(this.start, otherRange.start), Math.max(this.end, otherRange.end));
-	}
-}
-
 async function p2022day15_part2(input: string, ...params: any[]) {
 	const [sensors, line] = init(input);
 	const max = line;
@@ -108,7 +88,7 @@ async function p2022day15_part2(input: string, ...params: any[]) {
 	return coor[X] * 4000000 + coor[Y];
 
 	function findEmptySpotForLine(line: number): number | undefined {
-		let impossible: Range[] =  [];
+		let impossible: IntRange[] =  [];
 		for (let sensor of sensors) {
 			const newRange = sensor.getImpossibleRange(line);
 			newRange != undefined && impossible.push(newRange);
@@ -128,50 +108,14 @@ async function p2022day15_part2(input: string, ...params: any[]) {
 
 	function findBeaconCoor(): [number,number] {
 		for (let i = 0; i <= line; i++) {
-			if (i % 1000 == 0) console.log(i);
+			// if (i % 1000 == 0) console.log(i);
 			const empty = findEmptySpotForLine(i);
 			if (empty != undefined) {
 				return [empty, i];
 			}
 		}
 		throw Error('crap')
-	}
-
-	function sumRanges(ranges: Range[]): number {
-		if (ranges.length == 0) return 0;
-		const newRanges = flattenRanges(ranges);
-
-		const sum = newRanges.reduce((prev, curr) => {return prev + curr.length}, 0)
-
-		return sum;
-	}
-
-	function flattenRanges(ranges: Range[]): Range[] {
-		if (ranges.length <= 1) return ranges;
-		const retval = [...ranges];
-		let again = true;
-		
-		while (again) {
-			again = false;
-			for (let i = 0; i < retval.length-1; i++) {				
-				const curr = retval[i];
-				for (let j = i+1; j < retval.length; j++) {
-					const other = retval[j];
-					if (curr.overlaps(other)) {
-						const newRange = curr.combine(other);
-						retval.splice(j,1);						
-						retval.splice(i,1);
-						retval.push(newRange);
-						again = true;
-						break;
-					}
-				}
-				if (again) break;				
-			}
-		}
-
-		return retval;
-	}
+	}	
 	
 	function init(input: string): [Sensor[], number] {
 		const sensors: Sensor[] = [];
