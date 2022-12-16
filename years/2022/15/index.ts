@@ -103,18 +103,38 @@ class Range {
 
 async function p2022day15_part2(input: string, ...params: any[]) {
 	const [sensors, line] = init(input);
-	const answer = findAnswerForLine(line);
-	return answer;
+	const max = line;
+	const coor = findBeaconCoor();	
+	return coor[X] * 4000000 + coor[Y];
 
-	
-
-	function findAnswerForLine(line: number): number {
-		const impossible: Range[] =  [];
+	function findEmptySpotForLine(line: number): number | undefined {
+		let impossible: Range[] =  [];
 		for (let sensor of sensors) {
 			const newRange = sensor.getImpossibleRange(line);
 			newRange != undefined && impossible.push(newRange);
 		}
-		return sumRanges(impossible);
+		impossible = flattenRanges(impossible);
+		if (impossible.length > 1) {
+			if (impossible[0].end < impossible[1].start) {
+				return impossible[0].end+1;
+			} else {
+				return impossible[1].end+1;
+			}
+		}
+		if (impossible[0].start > 0) return 0;
+		if (impossible[0].end < max) return max;		
+		return;
+	}
+
+	function findBeaconCoor(): [number,number] {
+		for (let i = 0; i <= line; i++) {
+			if (i % 1000 == 0) console.log(i);
+			const empty = findEmptySpotForLine(i);
+			if (empty != undefined) {
+				return [empty, i];
+			}
+		}
+		throw Error('crap')
 	}
 
 	function sumRanges(ranges: Range[]): number {
