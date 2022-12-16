@@ -12,16 +12,56 @@ const DAY = 16;
 // data path    : /home/benjamin/Documents/personal/advent-of-code/years/2022/16/data.txt
 // problem url  : https://adventofcode.com/2022/day/16
 
+class Valve {
+	public connected: Valve[] = [];
+	constructor(public id: string, public rate: number = 0){}
+}
+
+function initValves(input: string): Map<string, Valve> {
+	const valves: Map<string, Valve> = new Map();
+	const lines = input.split("\n");
+	for (const line of lines) {
+		const arr = line.split(' ');
+		const id = arr[1];
+		const rateStr = arr[4];
+		const rate = rateStr.slice(5, rateStr.length-1);
+		const start = 9;
+		const connected: Valve[] = [];
+		for (let i = start; i < arr.length; i++) {
+			const curr = arr[i].replace(',', '');
+			if (!valves.has(curr)) {
+				valves.set(curr, new Valve(curr));
+			}
+			connected.push(valves.get(curr)!);
+		}
+		if (!valves.has(id)) valves.set(id, new Valve(id));
+		const currValve = valves.get(id)!;
+		currValve.rate = Number(rate);
+		currValve.connected = connected;
+	}
+	return valves;
+}
+
 async function p2022day16_part1(input: string, ...params: any[]) {
+	const valves = initValves(input);
+
 	return "Not implemented";
 }
+
+
 
 async function p2022day16_part2(input: string, ...params: any[]) {
 	return "Not implemented";
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
+	const part1tests: TestCase[] = [
+		{
+			input: `Valve AA has flow rate=0; tunnels lead to valves DD, II, BB\nValve BB has flow rate=13; tunnels lead to valves CC, AA\nValve CC has flow rate=2; tunnels lead to valves DD, BB\nValve DD has flow rate=20; tunnels lead to valves CC, AA, EE\nValve EE has flow rate=3; tunnels lead to valves FF, DD\nValve FF has flow rate=0; tunnels lead to valves EE, GG\nValve GG has flow rate=0; tunnels lead to valves FF, HH\nValve HH has flow rate=22; tunnel leads to valve GG\nValve II has flow rate=0; tunnels lead to valves AA, JJ\nValve JJ has flow rate=21; tunnel leads to valve II`,
+			extraArgs: [],
+			expected: `1651`
+		}
+	];
 	const part2tests: TestCase[] = [];
 
 	// Run tests
