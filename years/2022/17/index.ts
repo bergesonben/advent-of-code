@@ -20,6 +20,11 @@ const ROCKS = [
 	['@@', '@@']
 ]
 
+const DIR = {
+	'<': -1,
+	'>': 1
+}
+
 function spawn(rock: string[], cave: string[]): void {
 	let floor = 0;
 	for (let i = 0; i < cave.length; i++) {
@@ -35,12 +40,85 @@ function spawn(rock: string[], cave: string[]): void {
 	return;
 }
 
-function blown(cave: string, direction: string): string {
-	return '';
+function blown(cave: string[], direction: string): void {
+	let foundRock = false;
+	let lines = 0;
+	let end = 1;
+	// check if can be blown
+	for (let i = 0; i < cave.length; i++) {
+		const row = cave[i];
+		const edge = direction == '<' ? row.indexOf('@') : row.lastIndexOf('@');
+		if (edge != -1) {
+			foundRock = true;
+			lines++;
+			const toCheck = edge + DIR[direction as '<' | '>'];
+			if (toCheck < 0 || toCheck >= 7) return;
+			if (row.charAt(toCheck) != '.') return;
+		} else if (foundRock) {
+			end = i;
+			break;
+		}
+	}
+
+	// blow
+	for (let i = end-lines; i < end; i++) {
+		const offset = DIR[direction as '<' | '>'];
+		const row = cave[i];
+		let indexes = [];
+		for (let i = 0; i < row.length; i++) {
+			const cell = row[i];
+			if (cell == '@') indexes.push(i);
+		}
+		while (cave[i].includes('@'))	cave[i] = cave[i].replace('@', '.');
+		for (let index of indexes) {
+			const newIndex = index + offset;
+			cave[i] = cave[i].slice(0, newIndex) + '@' + cave[i].slice(newIndex + 1);
+		}
+	}
+	return;
 }
 
-function drop(cave: string): boolean {
-	return false;
+function dropAndKeepDropping(cave: string[]): boolean {
+	let foundRock = false;
+	let lines = 0;
+	let end = 1;
+	
+	// get range to check
+	for (let i = 0; i < cave.length; i++) { 
+		const row = cave[i];
+		if (row.includes('@')) {
+			foundRock = true;
+			lines++;
+			end = i+1;
+		} else if (foundRock) {			
+			break;
+		}
+	}
+	// check if possible to drop
+	if (end == 0) return false; // on the ground
+	for (let i = end-lines; i < end; i++) {
+		const row = cave[i];
+		if (row == undefined) {
+			continue;
+		}
+		for (let col = 0; col < 7; col++) {
+			const cell = row[col];
+			if (cell == '@') {
+				const toCheck = i + 1;
+				if (toCheck >= cave.length) return false;
+				if (!'@.'.includes(cave[toCheck][col])) return false; // hit something				
+			}
+		}		
+	}
+	// actually drop
+	for (let i = end-1; i >= end-lines; i--) {
+		while (cave[i].includes('@')) {
+			const index = cave[i].indexOf('@');
+			cave[i+1] = cave[i+1].slice(0,index) + '@' + cave[i+1].slice(index+1);
+			cave[i] = cave[i].replace('@', '.');			
+		}		
+	}
+	return true;
 }
 
 function lineIsFull(line: string): boolean {
@@ -57,35 +135,51 @@ function lineIsEmpty(line:string): boolean {
 	return true;
 }
 
-function trimCave(cave: string[]): number {
-	while (cave[0].trim().length == 0) {cave.shift()};
+function trimCave(cave: string[]): void {
+	while (lineIsEmpty(cave[0])) {cave.shift()};
+}
 
-	let count = 0;
-	for (let i = cave.length-1; i >= 0; i--) {
-		if (lineIsFull(cave[i])) {
-			cave.pop();
-			count++;
+function solidifyRock(cave: string[]): void {
+	let foundRock = false;
+	for (let i = 0; i < cave.length; i++) { // get range to check
+		const row = cave[i];
+		if (row.includes('@')) {
+			foundRock = true;
+			do {
+				cave[i] = cave[i].replace('@', '#');
+			} while (cave[i].includes('@'))			
+		} else if (foundRock) {
+			break;
 		}
 	}
-	return count;
+}
+
+function printCave(cave: string[]): void {
+	for (let line of cave) {
+		console.log(`|${line}|`);
+	}
+	console.log('+-------+')
 }
 
 async function p2022day17_part1(input: string, ...params: any[]) {
-	const directions = input;
-	const cave: string[] = [];
+	const directions = input.trim();
 	let dirIndex = 0;
-	let height = 0;
-	for (let i = 0; i < 5; i++) {
+	const cave: string[] = [];
+	for (let i = 0; i < 2022; i++) {
 		const rock = ROCKS[i%5];
 		spawn(rock, cave);
-		const add = trimCave(cave);
-		
-		// do {
-		// 	blown(cave, input.charAt(dirIndex%input.length));
-		// 	dirIndex++;
-		// } while (!drop(cave))		
+		let keepDropping = true;
+		while (keepDropping) {
+			trimCave(cave);
+			blown(cave, input.charAt(dirIndex%directions.length));
+			dirIndex++;
+			keepDropping = dropAndKeepDropping(cave);			
+		}
+		solidifyRock(cave);
+		trimCave(cave);		
 	}
-	return height;
+	trimCave(cave);	
+	return cave.length; 
 }
 
 async function p2022day17_part2(input: string, ...params: any[]) {
