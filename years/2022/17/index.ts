@@ -1,4 +1,4 @@
-import _ from "lodash";
+import _, { isMatch } from "lodash";
 import * as util from "../../../util/util";
 import * as test from "../../../util/test";
 import chalk from "chalk";
@@ -136,6 +136,7 @@ function lineIsEmpty(line:string): boolean {
 }
 
 function trimCave(cave: string[]): void {
+	if (cave.length == 0) return;
 	while (lineIsEmpty(cave[0])) {cave.shift()};
 }
 
@@ -166,6 +167,44 @@ async function p2022day17_part1(input: string, ...params: any[]) {
 	let dirIndex = 0;
 	const cave: string[] = [];
 	for (let i = 0; i < 2022; i++) {
+		handleOneRock(i);
+	}
+	trimCave(cave);	
+	return cave.length; 
+
+	function handleOneRock(rockIndex: number): number {
+		const rock = ROCKS[rockIndex%5];
+		spawn(rock, cave);
+		let keepDropping = true;
+		let dropDistance = 0;
+		while (keepDropping) {
+			trimCave(cave);
+			blown(cave, directions.charAt(dirIndex%directions.length));
+			dirIndex++;
+			dirIndex = dirIndex%directions.length;
+			keepDropping = dropAndKeepDropping(cave);		
+			if (keepDropping) dropDistance++;	
+		}
+		solidifyRock(cave);
+		return dropDistance;
+	}
+}
+
+async function p2022day17_part2(input: string, ...params: any[]) {
+	let cycleLen = 0
+	let cycleHeight = 0; 
+	let key = '';
+	findCycleLengthAndHeight(input);
+
+	const trillion = 1000000000000;
+	const numCycles = Math.floor(trillion / cycleLen) - 1;
+	const remainder = trillion - (numCycles * cycleLen);
+
+	const directions = input.trim();
+	let dirIndex = 0;
+	let cave: string[] = [];
+	
+	for (let i = 0; i < remainder; i++) {			
 		const rock = ROCKS[i%5];
 		spawn(rock, cave);
 		let keepDropping = true;
@@ -173,17 +212,54 @@ async function p2022day17_part1(input: string, ...params: any[]) {
 			trimCave(cave);
 			blown(cave, input.charAt(dirIndex%directions.length));
 			dirIndex++;
+			dirIndex = dirIndex%directions.length;
 			keepDropping = dropAndKeepDropping(cave);			
 		}
-		solidifyRock(cave);
-		trimCave(cave);		
-	}
-	trimCave(cave);	
-	return cave.length; 
-}
+		solidifyRock(cave);		
+	}	
+		
 
-async function p2022day17_part2(input: string, ...params: any[]) {
-	return "Not implemented";
+	return (cycleHeight * numCycles) + cave.length;
+
+	function findCycleLengthAndHeight(input: string): void {
+		const directions = input.trim();
+		let dirIndex = 0;
+		let cave: string[] = [];
+		const hashMap: Map<string, [number,number]> = new Map();
+		for (let i = 0; i < 100000; i++) {	
+			if (i < 1000) {
+				handleOneRock(i);
+			} else {
+				trimCave(cave);
+				const unique = `${i%5},${dirIndex},${cave.slice(0,5).join(',')}`;
+				if (hashMap.has(unique)) {
+					trimCave(cave);
+					cycleLen = i - hashMap.get(unique)![0];
+					cycleHeight = cave.length - hashMap.get(unique)![1];
+					key = unique;
+					return;
+				} else {				
+					hashMap.set(unique, [i,cave.length]);
+				}
+				handleOneRock(i);
+			}			
+		}	
+		throw Error('no cycle found')
+
+		function handleOneRock(rockIndex: number): void {
+			const rock = ROCKS[rockIndex%5];
+			spawn(rock, cave);
+			let keepDropping = true;
+			while (keepDropping) {				
+				trimCave(cave);
+				blown(cave, directions.charAt(dirIndex%directions.length));
+				dirIndex++;
+				dirIndex = dirIndex%directions.length;
+				keepDropping = dropAndKeepDropping(cave);		
+			}
+			solidifyRock(cave);
+		}		
+	}
 }
 
 async function run() {
@@ -194,7 +270,13 @@ async function run() {
 			expected: `3068`
 		}
 	];
-	const part2tests: TestCase[] = [];
+	const part2tests: TestCase[] = [
+		{
+			input: `>>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>`,
+			extraArgs: [],
+			expected: `1514285714288`
+		}
+	];
 
 	// Run tests
 	test.beginTests();
