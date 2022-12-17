@@ -12,8 +12,80 @@ const DAY = 17;
 // data path    : /home/benjamin/Documents/personal/advent-of-code/years/2022/17/data.txt
 // problem url  : https://adventofcode.com/2022/day/17
 
+const ROCKS = [
+	['@@@@'],
+	['.@.', '@@@', '.@.'],
+	['..@', '..@', '@@@'],
+	['@','@','@','@'],
+	['@@', '@@']
+]
+
+function spawn(rock: string[], cave: string[]): void {
+	let floor = 0;
+	for (let i = 0; i < cave.length; i++) {
+		if (cave[i].trim().length != 0) {
+			floor = i;
+		}
+	}
+	for (let i = 0; i < 3; i++) cave.unshift('.......');
+	for (let i = rock.length-1; i >= 0; i--) {
+		const line = ('..' + rock[i]).padEnd(7, '.');		
+		cave.unshift(line);
+	}	
+	return;
+}
+
+function blown(cave: string, direction: string): string {
+	return '';
+}
+
+function drop(cave: string): boolean {
+	return false;
+}
+
+function lineIsFull(line: string): boolean {
+	for (let i = 0; i < line.length; i++) {
+		if (line.charAt(i) == '.') return false;
+	}
+	return true;
+}
+
+function lineIsEmpty(line:string): boolean {
+	for (let i = 0; i < line.length; i++) {
+		if (line.charAt(i) != '.') return false;		
+	}
+	return true;
+}
+
+function trimCave(cave: string[]): number {
+	while (cave[0].trim().length == 0) {cave.shift()};
+
+	let count = 0;
+	for (let i = cave.length-1; i >= 0; i--) {
+		if (lineIsFull(cave[i])) {
+			cave.pop();
+			count++;
+		}
+	}
+	return count;
+}
+
 async function p2022day17_part1(input: string, ...params: any[]) {
-	return "Not implemented";
+	const directions = input;
+	const cave: string[] = [];
+	let dirIndex = 0;
+	let height = 0;
+	for (let i = 0; i < 5; i++) {
+		const rock = ROCKS[i%5];
+		spawn(rock, cave);
+		const add = trimCave(cave);
+		
+		// do {
+		// 	blown(cave, input.charAt(dirIndex%input.length));
+		// 	dirIndex++;
+		// } while (!drop(cave))		
+	}
+	return height;
 }
 
 async function p2022day17_part2(input: string, ...params: any[]) {
@@ -21,7 +93,13 @@ async function p2022day17_part2(input: string, ...params: any[]) {
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
+	const part1tests: TestCase[] = [
+		{
+			input: `>>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>`,
+			extraArgs: [],
+			expected: `3068`
+		}
+	];
 	const part2tests: TestCase[] = [];
 
 	// Run tests
