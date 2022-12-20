@@ -43,7 +43,6 @@ function decode(str: string): Coor {
 }
 
 async function p2022day18_part1(input: string, ...params: any[]) {
-	const droplets: [number,number,number][] = [];
 	const coors = input.split('\n').map(decode);
 
 	const answer = getSurfaceArea(coors);
@@ -53,18 +52,13 @@ async function p2022day18_part1(input: string, ...params: any[]) {
 function getCavitiesSurfaceArea(droplets: Set<string>, maxCoor: Coor): number {
 	const visited = new Set([...droplets]);
 	const cavities: Set<string>[] = [];
-	const outsideSpace: Set<string>[] = [];
 	for (let x = 0; x < maxCoor[0]; x++) {
 		for (let y = 0; y < maxCoor[1]; y++) {
 			for (let z = 0; z < maxCoor[2]; z++) {
 				if (visited.has([x,y,z].toString())) continue;
 				const cavity: Set<string> = new Set();
-				const enclosed = findCavity([x,y,z], cavity);
-				if (enclosed) {
-					cavities.push(cavity);
-				} else {
-					outsideSpace.push(cavity);
-				}
+				const enclosed = exploreCavity([x,y,z], cavity);
+				if (enclosed) cavities.push(cavity);
 				for (let coor of cavity) visited.add(coor);
 			}
 		}		
@@ -76,8 +70,8 @@ function getCavitiesSurfaceArea(droplets: Set<string>, maxCoor: Coor): number {
 	}
 	return totalSurfaceArea;
 
-	// returns if the cavity is enclosed
-	function findCavity(coor: Coor, path: Set<string>): boolean {
+	// returns if the cavity is enclosed or not
+	function exploreCavity(coor: Coor, path: Set<string>): boolean {
 		const dirs = directions(coor);
 		path.add(coor.toString());
 		let enclosed = true;
@@ -87,7 +81,7 @@ function getCavitiesSurfaceArea(droplets: Set<string>, maxCoor: Coor): number {
 				enclosed = false;
 				continue;
 			}
-			if (!findCavity(dir, path)) enclosed = false;
+			if (!exploreCavity(dir, path)) enclosed = false;
 		}
 		return enclosed;
 	}
