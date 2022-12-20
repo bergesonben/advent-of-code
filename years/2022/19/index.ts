@@ -1,4 +1,4 @@
-import _, { map } from "lodash";
+import _, { map, min } from "lodash";
 import * as util from "../../../util/util";
 import * as test from "../../../util/test";
 import chalk from "chalk";
@@ -99,10 +99,25 @@ function buildRobot(snapshot: Snapshot, robot: Robot): void {
 	}
 }
 
+function getGeodeRobot(snapshot: Snapshot): Robot {
+	const geodeRobot = [...snapshot.fleet.keys()].find(r => r.outputType == Resource.geode);
+	if (geodeRobot == undefined) throw Error(`Could'nt find geode robot`);
+	return geodeRobot;
+}
+
 function choices(snapshot: Snapshot): Snapshot[] {
-	const newPaths: Snapshot[] = [minutePassesBy(snapshot)];
+	const newPaths: Snapshot[] = [];
+	const geodeRobot = getGeodeRobot(snapshot);
+	if (canBuildRobot(snapshot.inventory, geodeRobot)) {
+		const newSnapshot = minutePassesBy(snapshot);
+		buildRobot(newSnapshot, geodeRobot);
+		return [newSnapshot];
+	}
 	
-	for (let robot of snapshot.fleet) {
+	const canBuildAllRobots = [...snapshot.fleet.entries()].every(r => canBuildRobot(snapshot.inventory, r[0]));
+	if (!canBuildAllRobots) newPaths.push(minutePassesBy(snapshot));	
+	
+	for (let robot of snapshot.fleet) {		
 		if (canBuildRobot(snapshot.inventory, robot[0])) {			
 			let newSnapshot = minutePassesBy(snapshot);
 			buildRobot(newSnapshot, robot[0]);			
@@ -128,13 +143,16 @@ function maxGeodeOutput(blueprint: Blueprint, time: number): number {
 	}
 
 	let snapshots: Snapshot[] = [snapshot];
-	for (let i = 0; i < 24; i++) {
+	const ts = Date.now();
+	const x = 14;
+	for (let i = 0; i < x; i++) {
 		let newSnapshots: Snapshot[] = [];
 		for (let snapshot of snapshots) {
 			newSnapshots = newSnapshots.concat(choices(snapshot));
 		}
 		snapshots = newSnapshots;
 	}
+	console.log(`${x} minutes took ${(Date.now() - ts) / 1000} seconds`);
 
 	return 0;
 }
@@ -178,22 +196,22 @@ async function run() {
 	test.endTests();
 
 	// Get input and run program while measuring performance
-	const input = await util.getInput(DAY, YEAR);
+	// const input = await util.getInput(DAY, YEAR);
 
-	const part1Before = performance.now();
-	const part1Solution = String(await p2022day19_part1(input));
-	const part1After = performance.now();
+	// const part1Before = performance.now();
+	// const part1Solution = String(await p2022day19_part1(input));
+	// const part1After = performance.now();
 
-	const part2Before = performance.now()
-	const part2Solution = String(await p2022day19_part2(input));
-	const part2After = performance.now();
+	// const part2Before = performance.now()
+	// const part2Solution = String(await p2022day19_part2(input));
+	// const part2After = performance.now();
 
-	logSolution(19, 2022, part1Solution, part2Solution);
+	// logSolution(19, 2022, part1Solution, part2Solution);
 
-	log(chalk.gray("--- Performance ---"));
-	log(chalk.gray(`Part 1: ${util.formatTime(part1After - part1Before)}`));
-	log(chalk.gray(`Part 2: ${util.formatTime(part2After - part2Before)}`));
-	log();
+	// log(chalk.gray("--- Performance ---"));
+	// log(chalk.gray(`Part 1: ${util.formatTime(part1After - part1Before)}`));
+	// log(chalk.gray(`Part 2: ${util.formatTime(part2After - part2Before)}`));
+	// log();
 }
 
 run()
