@@ -19,11 +19,36 @@ class Node {
 	public isHead = false;
 
 	public executeAndReturnNewHead(): Node | undefined {
-		let nodeToInsertInFrontOf: Node = this.value < 0 ? this : this.next!;
 		if (this.value == 0) {
 			// console.log("0 does not move");
 			return;
 		}
+
+		// remove this from the list
+		this.prev!.next = this.next;
+		this.next!.prev = this.prev;
+		
+		let nodeToInsertInFrontOf: Node = this.getNodeToInsertInFrontOf();
+		
+		let newHead;
+		if (this.isHead) {
+			this.isHead = false;
+			this.next!.isHead = true;
+			newHead = this.next!;
+		}
+		
+		
+		// insert this
+		this.next = nodeToInsertInFrontOf;
+		this.prev = nodeToInsertInFrontOf.prev!;
+		nodeToInsertInFrontOf.prev!.next = this;
+		nodeToInsertInFrontOf.prev = this;
+
+		if (newHead != undefined) return newHead;
+	}
+
+	private getNodeToInsertInFrontOf(): Node {
+		let nodeToInsertInFrontOf: Node = this.value < 0 ? this : this.next!;
 		if (this.value < 0) {
 			for(let i = 0; i < Math.abs(this.value); i++) {
 				if (nodeToInsertInFrontOf.prev == undefined) throw Error ('undefined prev found in Node')
@@ -35,30 +60,7 @@ class Node {
 				nodeToInsertInFrontOf = nodeToInsertInFrontOf.next;
 			}
 		}
-
-		let newHead;
-		if (this.isHead) {
-			this.isHead = false;
-			this.next!.isHead = true;
-			newHead = this.next!;
-		}
-		
-		// remove this from the list
-		this.prev!.next = this.next;
-		this.next!.prev = this.prev;
-		// insert this
-		this.next = nodeToInsertInFrontOf;
-		this.prev = nodeToInsertInFrontOf.prev!;
-		nodeToInsertInFrontOf.prev!.next = this;
-		nodeToInsertInFrontOf.prev = this;
-
-		// console.log(`${this.value} moves between ${this.prev!.value} and ${this.next.value}`);
-		// if (nodeToInsertInFrontOf.isHead) {
-		// 	this.isHead = true;
-		// 	nodeToInsertInFrontOf.isHead = false;
-		// 	return this;
-		// } 
-		if (newHead != undefined) return newHead;
+		return nodeToInsertInFrontOf;
 	}
 }
 
@@ -76,22 +78,11 @@ async function p2022day20_part1(input: string, ...params: any[]) {
 	const lines = input.split("\n");
 	let head: Node = new Node(Number(lines[0]));	
 	head.isHead = true;
-	const nodesInOrder: Node[] = [];
-	nodesInOrder.push(head);
+	const nodesInOrder: Node[] = [head];
 
 	let zeroNode: Node = new Node(0);
 
-	let prevNode: Node = head;
-	for (let i = 1; i < lines.length; i++) {
-		
-		const newNode = (Number(lines[i]) == 0) ? zeroNode : new Node(Number(lines[i]));
-		prevNode.next = newNode;
-		newNode.prev = prevNode;
-		prevNode = newNode;
-		nodesInOrder.push(newNode);
-	}
-	prevNode.next = head;
-	head.prev = prevNode;
+	initNodes();	
 
 	if (!nodesInOrder.every(n => n.next != undefined && n.prev != undefined)) throw Error('sanity check')
 
@@ -100,6 +91,7 @@ async function p2022day20_part1(input: string, ...params: any[]) {
 		const node = nodesInOrder[i];
 		const maybeNewHead = node.executeAndReturnNewHead();	
 		if (maybeNewHead != undefined) head = maybeNewHead;
+		if (i < 10) console.log(`${node.value} moves between ${node.prev!.value} and ${node.next!.value}`);
 		// printNodes(head);
 	}
 
@@ -116,6 +108,19 @@ async function p2022day20_part1(input: string, ...params: any[]) {
 			currNode = currNode.next;
 		}
 		return currNode;
+	}
+
+	function initNodes(): void {
+		let prevNode: Node = head;
+		for (let i = 1; i < lines.length; i++) {		
+			const newNode = (Number(lines[i]) == 0) ? zeroNode : new Node(Number(lines[i]));
+			prevNode.next = newNode;
+			newNode.prev = prevNode;
+			prevNode = newNode;
+			nodesInOrder.push(newNode);
+		}
+		prevNode.next = head;
+		head.prev = prevNode;
 	}
 }
 
