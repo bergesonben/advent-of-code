@@ -91,7 +91,7 @@ async function p2022day20_part1(input: string, ...params: any[]) {
 		const node = nodesInOrder[i];
 		const maybeNewHead = node.executeAndReturnNewHead();	
 		if (maybeNewHead != undefined) head = maybeNewHead;
-		if (i < 10) console.log(`${node.value} moves between ${node.prev!.value} and ${node.next!.value}`);
+		// if (i < 10) console.log(`${node.value} moves between ${node.prev!.value} and ${node.next!.value}`);
 		// printNodes(head);
 	}
 
@@ -132,7 +132,6 @@ class Node {
 
 	public executeAndReturnNewHead(listLen: number): Node | undefined {
 		if (this.value == 0) {
-			// console.log("0 does not move");
 			return;
 		}
 
@@ -148,8 +147,7 @@ class Node {
 			this.next!.isHead = true;
 			newHead = this.next!;
 		}
-		
-		
+				
 		// insert this
 		this.next = nodeToInsertInFrontOf;
 		this.prev = nodeToInsertInFrontOf.prev!;
@@ -160,9 +158,9 @@ class Node {
 	}
 
 	private getNodeToInsertInFrontOf(listLen: number): Node {
-		let nodeToInsertInFrontOf: Node = this.value < 0 ? this : this.next!;
+		let nodeToInsertInFrontOf: Node = this.next!;
 		if (this.value < 0) {
-			for(let i = 0; i < Math.abs(this.value % (listLen-1)); i++) {
+			for(let i = 0; i < (Math.abs(this.value)  % (listLen - 1)); i++) {
 				if (nodeToInsertInFrontOf.prev == undefined) throw Error ('undefined prev found in Node')
 				nodeToInsertInFrontOf = nodeToInsertInFrontOf.prev;
 			}			
@@ -178,6 +176,7 @@ class Node {
 
 async function p2022day20_part2(input: string, ...params: any[]) {
 	const decryptionKey = 811589153;
+	// const decryptionKey = 1;
 	const lines = input.split("\n");
 	let head: Node = new Node(Number(lines[0]) * decryptionKey);	
 	head.isHead = true;
@@ -189,18 +188,13 @@ async function p2022day20_part2(input: string, ...params: any[]) {
 
 	if (!nodesInOrder.every(n => n.next != undefined && n.prev != undefined)) throw Error('sanity check')
 
-	// console.log(`Initial arrangement:\n ${nodesInOrder.map(x=>x.value)}`)
 	for (let round = 1; round < 11; round++) {
 		for (let i = 0; i < nodesInOrder.length; i++) {
 			const node = nodesInOrder[i];
-			const maybeNewHead = node.executeAndReturnNewHead(lines.length);	
+			const maybeNewHead = node.executeAndReturnNewHead(nodesInOrder.length);	
 			if (maybeNewHead != undefined) head = maybeNewHead;			
 		}
-		// console.log(`After ${round} rounds of mixing:`)		
-		// printNodes(head);
-		// console.log('\n');
 	}
-	
 
 	const thousandth = getNthNode(1000);
 	const twoThousandth = getNthNode(2000);
