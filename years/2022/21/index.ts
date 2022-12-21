@@ -11,9 +11,74 @@ const DAY = 21;
 // solution path: /home/benjamin/Documents/personal/advent-of-code/years/2022/21/index.ts
 // data path    : /home/benjamin/Documents/personal/advent-of-code/years/2022/21/data.txt
 // problem url  : https://adventofcode.com/2022/day/21
+enum OP {
+	plus,
+	times,
+	divide,
+	minus,
+	literal,
+}
+class Monkey {
+	constructor(public name: string, public op?: OP, public num?: number){}
+	public depedencies: Monkey[] = [];
+
+	public getNum(): number {
+		if (this.num != undefined) return this.num;
+
+		const first = this.depedencies[0].getNum();
+		const second = this.depedencies[1].getNum();		
+		switch (this.op) {
+			case OP.plus: this.num = first + second; break;
+			case OP.divide: this.num = Math.floor(first / second); break;
+			case OP.times: this.num = first * second; break;
+			case OP.minus: this.num = first - second; break;
+			default: throw Error('unrecognized operation');
+		}
+		return this.num;
+	}
+}
 
 async function p2022day21_part1(input: string, ...params: any[]) {
-	return "Not implemented";
+	const monkeys: Map<string, Monkey> = new Map();
+	initMonkeys();
+	const root = monkeys.get('root') as Monkey;
+	if (root == undefined) throw Error("undefined root");
+	const answer = root.getNum();
+
+	return answer;
+
+	function initMonkeys(): void {
+		const lines = input.split("\n");
+		for (const line of lines) {		
+			const name = line.split(':')[0].trim();
+			const curr: Monkey = monkeys.has(name) ? monkeys.get(name)! : new Monkey(name);
+			const yeet = line.split(' '); 
+			if (yeet.length == 2) { // literal
+				curr.op = OP.literal;
+				curr.num = Number(_.nth(yeet, -1)?.trim());
+			} else if (yeet.length == 4) { // operation
+				const monkey1Name = yeet[1].trim();
+				const monkey2Name = yeet[3].trim();
+				let op: OP = OP.literal;
+				switch(yeet[2].trim()) {
+					case '+': op = OP.plus; break;
+					case '-': op = OP.minus; break;
+					case '*': op = OP.times; break;
+					case '/': op = OP.divide;				
+				}
+				const monkey1: Monkey = monkeys.has(monkey1Name) ? monkeys.get(monkey1Name)! : new Monkey(monkey1Name);
+				const monkey2: Monkey = monkeys.has(monkey2Name) ? monkeys.get(monkey2Name)! : new Monkey(monkey2Name);
+				curr.op = op;
+				curr.depedencies.push(monkey1);
+				curr.depedencies.push(monkey2);
+				monkeys.set(monkey1Name, monkey1);
+				monkeys.set(monkey2Name, monkey2);
+			} else {
+				throw Error('unrecognized input line')
+			}
+			monkeys.set(name, curr);
+		}
+	}
 }
 
 async function p2022day21_part2(input: string, ...params: any[]) {
@@ -21,7 +86,13 @@ async function p2022day21_part2(input: string, ...params: any[]) {
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
+	const part1tests: TestCase[] = [
+		{
+			input: `root: pppw + sjmn\ndbpl: 5\ncczh: sllz + lgvd\nzczc: 2\nptdq: humn - dvpt\ndvpt: 3\nlfqf: 4\nhumn: 5\nljgn: 2\nsjmn: drzm * dbpl\nsllz: 4\npppw: cczh / lfqf\nlgvd: ljgn * ptdq\ndrzm: hmdt - zczc\nhmdt: 32`,
+			extraArgs: [],
+			expected: `152`
+		}
+	];
 	const part2tests: TestCase[] = [];
 
 	// Run tests
