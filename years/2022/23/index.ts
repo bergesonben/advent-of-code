@@ -1,4 +1,4 @@
-import _, { round } from "lodash";
+import _ from "lodash";
 import * as util from "../../../util/util";
 import * as test from "../../../util/test";
 import chalk from "chalk";
@@ -33,124 +33,124 @@ function rotateDirections(directions: Direction[][]): void {
 	directions.push(directions.shift()!);
 }
 
+function initElves(input: string): Set<string> {
+	const elves: Set<string> = new Set(); // strigified Coors	
+	const lines = input.split("\n");
+	for (const [row, line] of lines.entries()) {
+		for (let col = 0; col < line.length; col++) {
+			const cell = line[col];
+			if (cell == '#') {
+				elves.add([row,col].toString());
+			}
+		}			
+	}
+	return elves;
+}
+
+function decode(str: string): Coor {
+	return str.split(',').map(Number) as Coor;
+}
+
+function getNSEWMaxes(elves: Set<string>): [number,number,number,number] {
+	let minRow = Number.MAX_SAFE_INTEGER;
+	let maxRow = Number.MIN_SAFE_INTEGER;
+	let minCol = Number.MAX_SAFE_INTEGER;
+	let maxCol = Number.MIN_SAFE_INTEGER;
+	
+	for (let elfStr of elves) {
+		const elf = decode(elfStr);
+		minRow = Math.min(minRow, elf[0]);
+		maxRow = Math.max(maxRow, elf[0]);
+		minCol = Math.min(minCol, elf[1]);
+		maxCol = Math.max(maxCol, elf[1]);
+	}		
+	return [minRow, maxRow, minCol, maxCol];
+}
+
+function printMap(elves: Set<string>): void {
+	let [rowMin, rowMax, colMin, colMax] = getNSEWMaxes(elves);
+	for (let row = rowMin;row < rowMax + 1; row++) {
+		let line = '';
+		for (let col = colMin; col < colMax + 1; col++) {
+			if (elves.has([row,col].toString())) {
+				line += '#';
+			} else {
+				line += '.';
+			}
+		}
+		console.log(line);
+	}
+}
+
+function needToMove(elf: Coor, elves: Set<string>): boolean {
+	for (let dir of ALL_8_DIRECTIONS) {
+		const newCoor: Coor = [elf[0] + dir[0], elf[1] + dir[1]];
+		if (elves.has(newCoor.toString())) return true;
+	}
+	return false;
+}
+
+function proposeMove(elf: Coor, dirs: Direction[][], elves: Set<string>): string | null {
+	for (let generalDir of dirs) {
+		let valid = true;
+		for (let specificDir of generalDir) {
+			const newCoor = [elf[0] + specificDir[0], elf[1] + specificDir[1]];
+			if (elves.has(newCoor.toString())) {
+				valid = false;
+				break;
+			}
+		}
+		if (valid) {
+			const newCoor = [elf[0] + generalDir[0][0], elf[1] + generalDir[0][1]];
+			return newCoor.toString();
+		}
+	}
+	return null;
+}	
+
+function round(elves: Set<string>, dirs: Direction[][]): boolean {
+	const validMoves: Map<string, string> = new Map();
+	const invalidMoves: Set<string> = new Set();
+	for (let elfStr of elves.keys()) {
+		const elf = decode(elfStr);
+		if (needToMove(elf, elves)) {
+			const proposed = proposeMove(elf, dirs, elves);
+			if (proposed == null) continue;
+			if (validMoves.has(proposed)) {
+				invalidMoves.add(proposed);
+				validMoves.delete(proposed);
+			} else if (!invalidMoves.has(proposed)) {
+				validMoves.set(proposed, elfStr);
+			}
+		}
+	}
+
+	if (validMoves.size == 0) {return false;}
+
+	for (let [destination, origin] of validMoves.entries()) {
+		elves.delete(origin);
+		elves.add(destination);
+	}
+
+	rotateDirections(dirs);
+	return true;
+}	
+
 async function p2022day23_part1(input: string, ...params: any[]) {
 	let dirs: Direction[][] = [NORTHERN, SOUTHERN, WESTERN, EASTERN];
-	const elves: Set<string> = new Set(); // strigified Coors	
-	initElves();
-	// console.log("START");
-	// printMap();
+	const elves: Set<string> = initElves(input);
 	const ROUNDS = 10;
 	for (let i = 0; i < ROUNDS; i++) {
-		round();
+		round(elves, dirs);
 	}
-	// console.log('After 1 round');
-	// printMap();
 	
 	const area = getSmallestRectArea();
 	const elvesCount = elves.size;
 	const answer = area - elvesCount;
-	return answer;
-
-	function initElves(): void {
-		const lines = input.split("\n");
-		for (const [row, line] of lines.entries()) {
-			for (let col = 0; col < line.length; col++) {
-				const cell = line[col];
-				if (cell == '#') {
-					elves.add([row,col].toString());
-				}
-			}			
-		}
-	}
-
-	function printMap(): void {
-		let [rowMin, rowMax, colMin, colMax] = getNSEWMaxes();
-		for (let row = rowMin;row < rowMax + 1; row++) {
-			let line = '';
-			for (let col = colMin; col < colMax + 1; col++) {
-				if (elves.has([row,col].toString())) {
-					line += '#';
-				} else {
-					line += '.';
-				}
-			}
-			console.log(line);
-		}
-	}
-
-	function getNSEWMaxes(): [number,number,number,number] {
-		let minRow = Number.MAX_SAFE_INTEGER;
-		let maxRow = Number.MIN_SAFE_INTEGER;
-		let minCol = Number.MAX_SAFE_INTEGER;
-		let maxCol = Number.MIN_SAFE_INTEGER;
-		
-		for (let elfStr of elves) {
-			const elf = decode(elfStr);
-			minRow = Math.min(minRow, elf[0]);
-			maxRow = Math.max(maxRow, elf[0]);
-			minCol = Math.min(minCol, elf[1]);
-			maxCol = Math.max(maxCol, elf[1]);
-		}		
-		return [minRow, maxRow, minCol, maxCol];
-	}
-
-	function round(): void {
-		const validMoves: Map<string, string> = new Map();
-		const invalidMoves: Set<string> = new Set();
-		for (let elfStr of elves.keys()) {
-			const elf = decode(elfStr);
-			if (needToMove(elf)) {
-				const proposed = proposeMove(elf);
-				if (proposed == null) continue;
-				if (validMoves.has(proposed)) {
-					invalidMoves.add(proposed);
-					validMoves.delete(proposed);
-				} else if (!invalidMoves.has(proposed)) {
-					validMoves.set(proposed, elfStr);
-				}
-			}
-		}
-
-		for (let [destination, origin] of validMoves.entries()) {
-			elves.delete(origin);
-			elves.add(destination);
-		}
-
-		rotateDirections(dirs);
-	}
-
-	function proposeMove(elf: Coor): string | null {
-		for (let generalDir of dirs) {
-			let valid = true;
-			for (let specificDir of generalDir) {
-				const newCoor = [elf[0] + specificDir[0], elf[1] + specificDir[1]];
-				if (elves.has(newCoor.toString())) {
-					valid = false;
-					break;
-				}
-			}
-			if (valid) {
-				const newCoor = [elf[0] + generalDir[0][0], elf[1] + generalDir[0][1]];
-				return newCoor.toString();
-			}
-		}
-		return null;
-	}
-
-	function decode(str: string): Coor {
-		return str.split(',').map(Number) as Coor;
-	}
-	
-	function needToMove(elf: Coor): boolean {
-		for (let dir of ALL_8_DIRECTIONS) {
-			const newCoor: Coor = [elf[0] + dir[0], elf[1] + dir[1]];
-			if (elves.has(newCoor.toString())) return true;
-		}
-		return false;
-	}
+	return answer;	
 
 	function getSmallestRectArea(): number {
-		let [rowMin, rowMax, colMin, colMax] = getNSEWMaxes();
+		let [rowMin, rowMax, colMin, colMax] = getNSEWMaxes(elves);
 		const width = rowMax - rowMin + 1;
 		const height = colMax - colMin + 1;
 		return width * height;
@@ -159,123 +159,12 @@ async function p2022day23_part1(input: string, ...params: any[]) {
 
 async function p2022day23_part2(input: string, ...params: any[]) {
 	let dirs: Direction[][] = [NORTHERN, SOUTHERN, WESTERN, EASTERN];
-	const elves: Set<string> = new Set(); // strigified Coors	
-	initElves();
-	// console.log("START");
-	// printMap();
+	const elves: Set<string> = initElves(input);
 	let rounds = 1;
-	while (round()) {
+	while (round(elves, dirs)) {
 		rounds++;
 	}
 	return rounds;
-
-	function initElves(): void {
-		const lines = input.split("\n");
-		for (const [row, line] of lines.entries()) {
-			for (let col = 0; col < line.length; col++) {
-				const cell = line[col];
-				if (cell == '#') {
-					elves.add([row,col].toString());
-				}
-			}			
-		}
-	}
-
-	function printMap(): void {
-		let [rowMin, rowMax, colMin, colMax] = getNSEWMaxes();
-		for (let row = rowMin;row < rowMax + 1; row++) {
-			let line = '';
-			for (let col = colMin; col < colMax + 1; col++) {
-				if (elves.has([row,col].toString())) {
-					line += '#';
-				} else {
-					line += '.';
-				}
-			}
-			console.log(line);
-		}
-	}
-
-	function getNSEWMaxes(): [number,number,number,number] {
-		let minRow = Number.MAX_SAFE_INTEGER;
-		let maxRow = Number.MIN_SAFE_INTEGER;
-		let minCol = Number.MAX_SAFE_INTEGER;
-		let maxCol = Number.MIN_SAFE_INTEGER;
-		
-		for (let elfStr of elves) {
-			const elf = decode(elfStr);
-			minRow = Math.min(minRow, elf[0]);
-			maxRow = Math.max(maxRow, elf[0]);
-			minCol = Math.min(minCol, elf[1]);
-			maxCol = Math.max(maxCol, elf[1]);
-		}		
-		return [minRow, maxRow, minCol, maxCol];
-	}
-
-	function round(): boolean {
-		const validMoves: Map<string, string> = new Map();
-		const invalidMoves: Set<string> = new Set();
-		for (let elfStr of elves.keys()) {
-			const elf = decode(elfStr);
-			if (needToMove(elf)) {
-				const proposed = proposeMove(elf);
-				if (proposed == null) continue;
-				if (validMoves.has(proposed)) {
-					invalidMoves.add(proposed);
-					validMoves.delete(proposed);
-				} else if (!invalidMoves.has(proposed)) {
-					validMoves.set(proposed, elfStr);
-				}
-			}
-		}
-
-		if (validMoves.size == 0) {return false;}
-
-		for (let [destination, origin] of validMoves.entries()) {
-			elves.delete(origin);
-			elves.add(destination);
-		}
-
-		rotateDirections(dirs);
-		return true;
-	}
-
-	function proposeMove(elf: Coor): string | null {
-		for (let generalDir of dirs) {
-			let valid = true;
-			for (let specificDir of generalDir) {
-				const newCoor = [elf[0] + specificDir[0], elf[1] + specificDir[1]];
-				if (elves.has(newCoor.toString())) {
-					valid = false;
-					break;
-				}
-			}
-			if (valid) {
-				const newCoor = [elf[0] + generalDir[0][0], elf[1] + generalDir[0][1]];
-				return newCoor.toString();
-			}
-		}
-		return null;
-	}
-
-	function decode(str: string): Coor {
-		return str.split(',').map(Number) as Coor;
-	}
-	
-	function needToMove(elf: Coor): boolean {
-		for (let dir of ALL_8_DIRECTIONS) {
-			const newCoor: Coor = [elf[0] + dir[0], elf[1] + dir[1]];
-			if (elves.has(newCoor.toString())) return true;
-		}
-		return false;
-	}
-
-	function getSmallestRectArea(): number {
-		let [rowMin, rowMax, colMin, colMax] = getNSEWMaxes();
-		const width = rowMax - rowMin + 1;
-		const height = colMax - colMin + 1;
-		return width * height;
-	}
 }
 
 async function run() {
