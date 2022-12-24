@@ -4,6 +4,7 @@ import * as test from "../../../util/test";
 import chalk from "chalk";
 import { log, logSolution, trace } from "../../../util/log";
 import { performance } from "perf_hooks";
+import { bfSearch } from "../../../util/graph";
 
 const YEAR = 2022;
 const DAY = 24;
@@ -28,15 +29,42 @@ async function p2022day24_part1(input: string, ...params: any[]) {
 
 	let mapWidth = 0;
 	let mapHeight = 0;
-	let startMap: MapSnapshot = [];
-	const maps: MapSnapshot[] = [];
-	let start: CellSnapshot;
+	let startMap: MapSnapshot = [];	
 	initMap();
-	printMap(startMap);
-	maps.push(nextMap(startMap));
-	printMap(maps.at(-1)!);
+	const maps: MapSnapshot[] = [startMap];
+	let start = startMap[0][1];
 
-	return "Not implemented";
+	const options = {
+		isEnd: (cell: CellSnapshot) => {
+			return cell.row == mapHeight-1 && cell.col == mapWidth-2;
+		},
+		start: start!,
+		neighbors: (cell: CellSnapshot) => {
+			return getNeighbors(cell);
+		}
+	}
+
+	const result = bfSearch(options);
+
+	return result!.shortestPath.length-1;
+
+	function getNeighbors(cell: CellSnapshot): CellSnapshot[] {
+		const currMap = maps[cell.minute];		
+		let newMap = maps[cell.minute+1];
+		if (newMap == undefined) {
+			newMap = nextMap(currMap);
+			maps.push(newMap);
+		}
+		const dirs = directions(cell.row, cell.col);
+		dirs.push([cell.row, cell.col]);
+		const neighbors: CellSnapshot[] = [];
+		for (let dir of dirs) {
+			const [newRow, newCol] = dir;
+			const newNeighbor = newMap[newRow][newCol]!;
+			if (newNeighbor.blizzards.length == 0 && !newNeighbor.isWall) neighbors.push(newNeighbor);
+		}	
+		return neighbors;
+	}
 
 	function nextMap(map: MapSnapshot): MapSnapshot {
 		const newMap = Array(mapHeight).fill(false).map(x => Array(mapWidth));
@@ -88,7 +116,7 @@ async function p2022day24_part1(input: string, ...params: any[]) {
 		}
 	}
 
-	function dirs(row: number, col: number): [number,number][] {
+	function directions(row: number, col: number): [number,number][] {
 		const retval: [number,number][] = []
 		if (row -1 >= 0) retval.push([row-1, col]);
 		if (row + 1 < mapHeight) retval.push([row+1, col])
@@ -149,20 +177,20 @@ async function run() {
 	// Get input and run program while measuring performance
 	const input = await util.getInput(DAY, YEAR);
 
-	// const part1Before = performance.now();
-	// const part1Solution = String(await p2022day24_part1(input));
-	// const part1After = performance.now();
+	const part1Before = performance.now();
+	const part1Solution = String(await p2022day24_part1(input));
+	const part1After = performance.now();
 
-	// const part2Before = performance.now()
-	// const part2Solution = String(await p2022day24_part2(input));
-	// const part2After = performance.now();
+	const part2Before = performance.now()
+	const part2Solution = String(await p2022day24_part2(input));
+	const part2After = performance.now();
 
-	// logSolution(24, 2022, part1Solution, part2Solution);
+	logSolution(24, 2022, part1Solution, part2Solution);
 
-	// log(chalk.gray("--- Performance ---"));
-	// log(chalk.gray(`Part 1: ${util.formatTime(part1After - part1Before)}`));
-	// log(chalk.gray(`Part 2: ${util.formatTime(part2After - part2Before)}`));
-	// log();
+	log(chalk.gray("--- Performance ---"));
+	log(chalk.gray(`Part 1: ${util.formatTime(part1After - part1Before)}`));
+	log(chalk.gray(`Part 2: ${util.formatTime(part2After - part2Before)}`));
+	log();
 }
 
 run()
