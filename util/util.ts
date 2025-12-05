@@ -140,9 +140,9 @@ export function bigIntMod(_a: number | bigint, _n: number | bigint) {
  * JavaScript's % operator is the remainder operator rather than the modulus
  * operator. This function implements modulus, which produces different results
  * than % for negative values. Use this instead of % for most cases.
- * @param a 
- * @param n 
- * @returns 
+ * @param a
+ * @param n
+ * @returns
  */
 export function mod(a: number, n: number) {
 	return ((a % n) + n) % n;
@@ -218,6 +218,30 @@ export function powerMod(_base: number | bigint, _exponent: number | bigint, _mo
 	return result;
 }
 
+export function* choose<T>(inputArr: T[], count: number): Generator<T[], any, any> {
+	const options = Math.pow(2, inputArr.length);
+	for (let i = 0; i < options; ++i) {
+		let manip = i;
+		let ones = 0;
+		while (manip > 0) {
+			if ((manip & 1) === 1) {
+				ones++;
+			}
+			manip >>= 1;
+		}
+		if (ones === count) {
+			const choice: T[] = [];
+			const binary = i.toString(2).padStart(inputArr.length, "0");
+			for (let j = 0; j < binary.length; ++j) {
+				if (binary[j] === "1") {
+					choice.push(inputArr[j]);
+				}
+			}
+			yield choice;
+		}
+	}
+}
+
 export function getPermutations<T>(inputArr: T[]) {
 	const result: T[][] = [];
 
@@ -253,9 +277,9 @@ export function powerSet<T>(inputArr: T[], settings: { proper?: boolean; nonEmpt
 
 /**
  * I don't remember exactly what this does.
- * @param elems 
- * @param target 
- * @param level 
+ * @param elems
+ * @param target
+ * @param level
  */
 // Note: doesn't work great for duplicate values in the input array
 export function* getSumSubsets(elems: number[], target: number, level: number = 0): Generator<number[] | undefined> {
@@ -304,9 +328,7 @@ export function* getSumSubsets(elems: number[], target: number, level: number = 
 /**
  * Returns the count of each unique element in the array
  */
-export function countUniqueElements(
-	iterable: Iterable<string>
-): {
+export function countUniqueElements(iterable: Iterable<string>): {
 	[elem: string]: number;
 } {
 	const result: { [elem: string]: number } = {};
@@ -323,14 +345,15 @@ export function countUniqueElements(
 /**
  * For a given array, find the "maximum" element and return its index,
  * numerical value, and original value.
- * @param arr 
+ * @param arr
  * @param toNumber A function to convert array elements to numbers
- * @returns 
+ * @returns
  */
-export function max<T>(arr: T[], toNumber: (elem: T) => number = Number) {
+export function max<T>(arr: T[], toNumber: (elem: T) => number = Number, getAllIndexes = false) {
 	let maxIndex = -1;
 	let maxValue = Number.MIN_VALUE;
 	let maxElem: T | undefined = undefined;
+	let allIndexes: number[] = [];
 	for (let i = 0; i < arr.length; ++i) {
 		const num = toNumber(arr[i]);
 		if (num > maxValue) {
@@ -339,20 +362,29 @@ export function max<T>(arr: T[], toNumber: (elem: T) => number = Number) {
 			maxElem = arr[i];
 		}
 	}
-	return { index: maxIndex, value: maxValue, elem: maxElem! };
+	if (getAllIndexes) {
+		for (let i = 0; i < arr.length; ++i) {
+			const num = toNumber(arr[i]);
+			if (num === maxValue) {
+				allIndexes.push(i);
+			}
+		}
+	}
+	return { index: maxIndex, value: maxValue, elem: maxElem!, allIndexes };
 }
 
 /**
  * For a given array, find the "minimum" element and return its index,
  * numerical value, and original value.
- * @param arr 
+ * @param arr
  * @param toNumber A function to convert array elements to numbers
- * @returns 
+ * @returns
  */
-export function min<T>(arr: T[], toNumber: (elem: T) => number = Number) {
+export function min<T>(arr: T[], toNumber: (elem: T) => number = Number, getAllIndexes = false) {
 	let minIndex = -1;
 	let minValue = Number.MAX_VALUE;
 	let minElem: T | undefined = undefined;
+	const allIndexes: number[] = [];
 	for (let i = 0; i < arr.length; ++i) {
 		const num = toNumber(arr[i]);
 		if (num < minValue) {
@@ -361,16 +393,42 @@ export function min<T>(arr: T[], toNumber: (elem: T) => number = Number) {
 			minElem = arr[i];
 		}
 	}
-	return { index: minIndex, value: minValue, elem: minElem! };
+	if (getAllIndexes) {
+		for (let i = 0; i < arr.length; ++i) {
+			const num = toNumber(arr[i]);
+			if (num === minValue) {
+				allIndexes.push(i);
+			}
+		}
+	}
+	return { index: minIndex, value: minValue, elem: minElem!, allIndexes };
 }
 
 /**
  * Returns the MD5 digest of the given string as a hexadecimal string.
- * @param input 
- * @returns 
+ * @param input
+ * @returns
  */
 export function md5(input: string) {
 	const hash = crypto.createHash("md5");
 	hash.update(input);
 	return hash.digest("hex");
+}
+
+export function sumArray(arr: Iterable<number>) {
+	let sum = 0;
+	for (const elem of arr) {
+		sum += elem;
+	}
+	return sum;
+}
+
+/**
+ * Mathematically compute the number of digits in a number.
+ * (Presumably this is faster than converting to a string and checking its length.)
+ * @param num 
+ * @returns 
+ */
+export function numDigits(num: number) {
+	return Math.floor(Math.log10(num)) + 1;
 }

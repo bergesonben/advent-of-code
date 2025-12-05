@@ -1,4 +1,3 @@
-import fetch from "cross-fetch";
 import { getAppRoot, replaceAll, wait, getDayRoot, getProblemUrl, getLatestPuzzleDate, formatTime } from "./util/util";
 import playwright from "playwright-chromium";
 import { LocalStorage } from "node-localstorage";
@@ -278,7 +277,7 @@ async function run() {
 				const isDone = await suckDay(day, year);
 				if (isDone) {
 					console.log(`Finished sucking year ${year} after day: ${day - 1}.`);
-					return;
+					break;
 				}
 
 				// Wait 100ms between requests, because idk.
