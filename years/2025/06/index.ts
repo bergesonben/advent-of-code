@@ -14,16 +14,84 @@ const DAY = 6;
 // problem url  : https://adventofcode.com/2025/day/6
 
 async function p2025day6_part1(input: string, ...params: any[]) {
-	return "Not implemented";
+	const linesStr = input.split("\n");
+	const lines = linesStr.map((line: string) => {
+		return line.trim().split(/\s+/);		
+	});
+
+	let totalSum = 0;
+	for (let i = 0; i < lines[0].length; i++) {		
+		let colSum = 0;
+		if (lines.at(-1)![i] == '*') {
+			colSum = 1;
+			for (let j = 0; j < lines.length - 1; j++) {
+				colSum *= Number(lines[j][i]);
+			}
+		} else {
+			colSum = 0;
+			for (let j = 0; j < lines.length - 1; j++) {
+				colSum += Number(lines[j][i]);
+			}
+		}		
+		totalSum += colSum;
+	}
+
+	return totalSum;
 }
 
 async function p2025day6_part2(input: string, ...params: any[]) {
-	return "Not implemented";
+	const lines = input.split("\n");
+
+	function getNumber(col: number): number {
+		let numStr = '';
+		for (let row = 0; row < lines.length - 1; row++) {
+			numStr += lines[row][col].trim();
+		}
+		if (numStr == '') {
+			return -1;
+		}
+		return Number(numStr);
+	}
+
+	let totalSum = 0;
+	let numbers: number[] = []
+	for (let col = lines[0].length - 1; col >= 0; col--) {
+		const opSymbol = lines.at(-1)![col];		
+		const colNum = getNumber(col);
+		if (colNum != -1) {
+			numbers.push(colNum);
+		}
+
+		if (opSymbol == '+') {
+			const sectionResult = numbers.reduce((a, b) => {return a + b;});
+			totalSum += sectionResult;
+			// console.log(`+ found, adding ${numbers} = ${sectionResult}`);
+			numbers = [];
+		} else if (opSymbol == '*') {
+			const sectionResult = numbers.reduce((a, b) => {return a * b;});
+			totalSum += sectionResult;
+			// console.log(`* found, multiplying ${numbers} = ${sectionResult}`);
+			numbers = [];
+		} 
+	}
+
+	return totalSum;
 }
 
 async function run() {
-	const part1tests: TestCase[] = [];
-	const part2tests: TestCase[] = [];
+	const part1tests: TestCase[] = [
+// 				{ input: `123 328  51 64 
+//  45 64  387 23 
+//   6 98  215 314
+// *   +   *   + `, expected: `4277556`, },
+	];
+	const part2tests: TestCase[] = [
+						{ input: `123 328  51 64 
+ 45 64  387 23 
+  6 98  215 314
+*   +   *   + `, expected: `3263827`, },
+
+	];
 
 	const [p1testsNormalized, p2testsNormalized] = normalizeTestCases(part1tests, part2tests);
 
