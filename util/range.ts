@@ -18,6 +18,10 @@ export class IntRange {
 	public combine(otherRange: IntRange): IntRange {
 		return new IntRange(Math.min(this.start, otherRange.start), Math.max(this.end, otherRange.end));
 	}
+
+	public toString(): string {
+		return `(${this.start},${this.end})`;
+	}
 }
 
 
