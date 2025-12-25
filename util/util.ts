@@ -432,3 +432,11 @@ export function sumArray(arr: Iterable<number>) {
 export function numDigits(num: number) {
 	return Math.floor(Math.log10(num)) + 1;
 }
+
+export function mapAdd<K,V>(map: Map<K, V>, key: K, value: V, fn: (a: V, b: V)=>V): void {
+	if (map.has(key)) {
+		map.set(key, fn(map.get(key)!, value));
+	} else {
+		map.set(key, value);
+	}
+}
